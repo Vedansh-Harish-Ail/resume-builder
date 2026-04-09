@@ -20,7 +20,7 @@ function initApp() {
     simpleFields.forEach(field => {
         const input = document.querySelector(`[data-sync="${field}"]`);
         const val = localStorage.getItem(`resume_${field}`) || '';
-        if(input) {
+        if (input) {
             input.value = val;
             input.addEventListener('input', (e) => {
                 const value = e.target.value;
@@ -28,20 +28,20 @@ function initApp() {
                 updatePreview(field, value);
             });
         }
-        updatePreview(field, val); 
+        updatePreview(field, val);
     });
 
     const lsExp = localStorage.getItem('resume_experience');
-    if(lsExp) state.experience = JSON.parse(lsExp);
+    if (lsExp) state.experience = JSON.parse(lsExp);
     else state.experience = [{ id: Date.now(), role: '', company: '', date: '', location: '', desc: '' }];
 
     const lsProj = localStorage.getItem('resume_projects');
-    if(lsProj) state.projects = JSON.parse(lsProj);
-    else state.projects = [{ id: Date.now()+1, role: '', company: '', date: '', desc: '' }];
+    if (lsProj) state.projects = JSON.parse(lsProj);
+    else state.projects = [{ id: Date.now() + 1, role: '', company: '', date: '', desc: '' }];
 
     const lsEdu = localStorage.getItem('resume_education');
-    if(lsEdu) state.education = JSON.parse(lsEdu);
-    else state.education = [{ id: Date.now()+2, degree: '', school: '', date: '' }];
+    if (lsEdu) state.education = JSON.parse(lsEdu);
+    else state.education = [{ id: Date.now() + 2, degree: '', school: '', date: '' }];
 
     // Render Lists
     renderDynamicList('experience');
@@ -51,11 +51,11 @@ function initApp() {
 
 function updatePreview(field, value) {
     const outElem = document.getElementById(`out${capitalize(field)}`);
-    if(outElem) {
-        if(field === 'summary') {
+    if (outElem) {
+        if (field === 'summary') {
             outElem.innerText = value;
             const summarySec = document.getElementById('sectionSummary');
-            if(summarySec) summarySec.style.display = value.trim() ? 'block' : 'none';
+            if (summarySec) summarySec.style.display = value.trim() ? 'block' : 'none';
         }
         else if (field === 'skills') {
             outElem.innerText = value;
@@ -64,7 +64,7 @@ function updatePreview(field, value) {
         else if (field === 'certifications') {
             const certWrap = document.getElementById('certificationsWrapper');
             outElem.innerText = value;
-            if(certWrap) certWrap.style.display = value.trim() ? 'block' : 'none';
+            if (certWrap) certWrap.style.display = value.trim() ? 'block' : 'none';
             checkSkillsVisibility();
         }
         else {
@@ -78,7 +78,7 @@ function checkSkillsVisibility() {
     const skills = localStorage.getItem('resume_skills') || '';
     const certs = localStorage.getItem('resume_certifications') || '';
     const section = document.getElementById('sectionSkills');
-    if(section) {
+    if (section) {
         section.style.display = (skills.trim() || certs.trim()) ? 'block' : 'none';
     }
 }
@@ -108,7 +108,7 @@ function renderDynamicList(type) {
     let templateId = 'tplExperience';
     if (type === 'education') templateId = 'tplEducation';
     if (type === 'projects') templateId = 'tplProject';
-    
+
     const template = document.getElementById(templateId);
     let hasData = false;
 
@@ -116,7 +116,7 @@ function renderDynamicList(type) {
         const clone = template.content.cloneNode(true);
         const wrapper = clone.firstElementChild;
         wrapper.dataset.id = item.id;
-        
+
         // Drag and Drop Logic
         wrapper.addEventListener('dragstart', (e) => {
             e.dataTransfer.effectAllowed = 'move';
@@ -138,7 +138,7 @@ function renderDynamicList(type) {
             e.preventDefault();
             wrapper.classList.remove('drop-target');
             const dataStr = e.dataTransfer.getData('text/plain');
-            if(!dataStr) return;
+            if (!dataStr) return;
             const data = JSON.parse(dataStr);
             if (data.type === type && data.id !== item.id) {
                 const arr = state[type];
@@ -150,7 +150,7 @@ function renderDynamicList(type) {
                 renderDynamicList(type);
             }
         });
-        
+
         const inputs = wrapper.querySelectorAll('input, textarea');
         inputs.forEach(input => {
             const field = input.dataset.field;
@@ -161,11 +161,11 @@ function renderDynamicList(type) {
         });
         container.appendChild(wrapper);
 
-        if(type === 'experience') {
-            if(item.role || item.company) {
+        if (type === 'experience') {
+            if (item.role || item.company) {
                 hasData = true;
-                const descLines = item.desc ? item.desc.split('\n').filter(l=>l.trim()).map(l => {
-                    return `<li>${l.replace(/^[-•*]\s*/,'')}</li>`;
+                const descLines = item.desc ? item.desc.split('\n').filter(l => l.trim()).map(l => {
+                    return `<li>${l.replace(/^[-•*]\s*/, '')}</li>`;
                 }).join('') : '';
                 previewContainer.innerHTML += `
                     <div class="exp-item-out">
@@ -182,12 +182,12 @@ function renderDynamicList(type) {
                         </div>
                     </div>`;
             }
-        } 
+        }
         else if (type === 'projects') {
-            if(item.role || item.company) {
+            if (item.role || item.company) {
                 hasData = true;
-                const descLines = item.desc ? item.desc.split('\n').filter(l=>l.trim()).map(l => {
-                    return `<li>${l.replace(/^[-•*]\s*/,'')}</li>`;
+                const descLines = item.desc ? item.desc.split('\n').filter(l => l.trim()).map(l => {
+                    return `<li>${l.replace(/^[-•*]\s*/, '')}</li>`;
                 }).join('') : '';
                 previewContainer.innerHTML += `
                     <div class="exp-item-out">
@@ -204,8 +204,8 @@ function renderDynamicList(type) {
                     </div>`;
             }
         }
-        else if(type === 'education') {
-            if(item.degree || item.school) {
+        else if (type === 'education') {
+            if (item.degree || item.school) {
                 hasData = true;
                 previewContainer.innerHTML += `
                     <div class="edu-item-out">
@@ -227,15 +227,15 @@ function renderDynamicList(type) {
 
 function updateDynamicItem(type, id, field, value) {
     const item = state[type].find(i => i.id === id);
-    if(item) {
+    if (item) {
         item[field] = value;
         localStorage.setItem(`resume_${type}`, JSON.stringify(state[type]));
-        renderDynamicList(type); 
+        renderDynamicList(type);
     }
 }
 
 function addExperience() {
-    state.experience.push({ id: Date.now(), role: '', company: '', date: '', location:'', desc: '' });
+    state.experience.push({ id: Date.now(), role: '', company: '', date: '', location: '', desc: '' });
     localStorage.setItem('resume_experience', JSON.stringify(state.experience));
     renderDynamicList('experience');
 }
@@ -267,7 +267,7 @@ document.getElementById('btnDownload').addEventListener('click', () => { window.
 function setEditorField(field, val) {
     localStorage.setItem(`resume_${field}`, val);
     const input = document.querySelector(`[data-sync="${field}"]`);
-    if(input) input.value = val;
+    if (input) input.value = val;
     updatePreview(field, val);
 }
 
@@ -277,7 +277,7 @@ function setEditorField(field, val) {
 // IMPORTANT: Place your Developer API Key here for testing.
 // NEVER deploy this code to a public website with your key exposed!
 // In production, this fetch call must be moved to your own backend server.
-const DEVELOPER_GEMINI_API_KEY = "AIzaSyBxCP0cmbAiYLA9Mhx-4L30itIimcHd0g8";
+const DEVELOPER_GEMINI_API_KEY = "AIzaSyDPMd29gcIgwO0cViOQLK09h5N8sxwG2Qw";
 
 const fileUpload = document.getElementById('fileUpload');
 const uploadModal = document.getElementById('uploadModal');
@@ -301,23 +301,23 @@ document.getElementById('btnConfirmUpload').addEventListener('click', () => {
 });
 
 fileUpload.addEventListener('change', async (e) => {
-    if(e.target.files.length > 0) {
+    if (e.target.files.length > 0) {
         uploadStatusArea.style.display = 'block';
         const file = e.target.files[0];
         try {
             uploadProgress.style.width = '20%';
             uploadStatus.innerText = `Extracting pure text using PDF.js...`;
             const extractedText = await extractTextFromPDF(file);
-            
+
             uploadProgress.style.width = '50%';
             uploadStatus.innerText = `Calling Gemini API...`;
             const parsedData = await parseResumeWithGemini(extractedText);
-            
+
             uploadProgress.style.width = '90%';
             uploadStatus.innerText = `Mapping variables to 100-Score Template...`;
-            
+
             applyParsedData(parsedData);
-            
+
             uploadProgress.style.width = '100%';
             setTimeout(() => {
                 uploadModal.classList.remove('show');
@@ -338,7 +338,7 @@ async function extractTextFromPDF(file) {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     let fullText = '';
-    
+
     for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
@@ -349,7 +349,7 @@ async function extractTextFromPDF(file) {
 }
 
 async function parseResumeWithGemini(text) {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${DEVELOPER_GEMINI_API_KEY}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${DEVELOPER_GEMINI_API_KEY}`;
 
     const prompt = `
     You are an expert ATS resume parser. Extract information from the following text and return ONLY a single JSON object. Do not wrap it in markdown block quotes. Use this exact schema:
@@ -373,30 +373,30 @@ async function parseResumeWithGemini(text) {
     });
 
     const data = await response.json();
-    if(data.error) throw new Error(data.error.message);
-    
+    if (data.error) throw new Error(data.error.message);
+
     let rawResult = data.candidates[0].content.parts[0].text;
     rawResult = rawResult.replace(/```json/g, '').replace(/```/g, '').trim();
-    
+
     return JSON.parse(rawResult);
 }
 
 function applyParsedData(data) {
-    if(data.firstName) setEditorField('firstName', data.firstName);
-    if(data.lastName) setEditorField('lastName', data.lastName);
-    if(data.email) setEditorField('email', data.email);
-    if(data.phone) setEditorField('phone', data.phone);
-    if(data.location) setEditorField('location', data.location);
-    if(data.link) setEditorField('link', data.link);
-    if(data.skills) setEditorField('skills', data.skills);
-    if(data.certifications) setEditorField('certifications', data.certifications);
-    if(data.summary) setEditorField('summary', data.summary);
+    if (data.firstName) setEditorField('firstName', data.firstName);
+    if (data.lastName) setEditorField('lastName', data.lastName);
+    if (data.email) setEditorField('email', data.email);
+    if (data.phone) setEditorField('phone', data.phone);
+    if (data.location) setEditorField('location', data.location);
+    if (data.link) setEditorField('link', data.link);
+    if (data.skills) setEditorField('skills', data.skills);
+    if (data.certifications) setEditorField('certifications', data.certifications);
+    if (data.summary) setEditorField('summary', data.summary);
 
     if (data.experience && data.experience.length > 0) {
         state.experience = data.experience.map((e, idx) => ({ id: Date.now() + idx, ...e }));
         localStorage.setItem('resume_experience', JSON.stringify(state.experience));
     }
-    
+
     if (data.projects && data.projects.length > 0) {
         state.projects = data.projects.map((p, idx) => ({ id: Date.now() + 100 + idx, ...p }));
         localStorage.setItem('resume_projects', JSON.stringify(state.projects));
