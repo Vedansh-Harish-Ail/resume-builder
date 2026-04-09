@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,13 +8,15 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" href="#">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"
+        href="#">
     <link rel="stylesheet" href="style.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- PDF.js for text extraction -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
+
 <body>
     <div id="appShell">
         <nav class="navbar hide-on-print">
@@ -23,7 +26,8 @@
             </div>
             <div class="nav-actions">
                 <input type="file" id="fileUpload" accept=".pdf,.doc,.docx" style="display:none;" />
-                <button class="btn secondary" id="btnUploadResume"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume</button>
+                <button class="btn secondary" id="btnUploadResume"><i class="fa-solid fa-cloud-arrow-up"></i> Upload
+                    Resume</button>
                 <button class="btn primary" id="btnDownload"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
             </div>
         </nav>
@@ -34,7 +38,7 @@
                     <h2>Fill Your Details</h2>
                     <p>Auto-saved locally. 100-Score ATS layout applied instantly.</p>
                 </header>
-                
+
                 <div class="accordion">
                     <!-- Personal Info -->
                     <div class="accordion-item active">
@@ -44,19 +48,24 @@
                         </div>
                         <div class="accordion-content" style="display:block;">
                             <div class="form-group grid-2">
-                                <div><label>First Name</label><input type="text" id="inpFirstName" data-sync="firstName"></div>
-                                <div><label>Last Name</label><input type="text" id="inpLastName" data-sync="lastName"></div>
+                                <div><label>First Name</label><input type="text" id="inpFirstName"
+                                        data-sync="firstName"></div>
+                                <div><label>Last Name</label><input type="text" id="inpLastName" data-sync="lastName">
+                                </div>
                             </div>
                             <div class="form-group grid-2">
                                 <div><label>Email</label><input type="email" id="inpEmail" data-sync="email"></div>
                                 <div><label>Phone</label><input type="tel" id="inpPhone" data-sync="phone"></div>
                             </div>
                             <div class="form-group grid-2">
-                                <div><label>Location (City, State)</label><input type="text" id="inpLocation" data-sync="location"></div>
-                                <div><label>URL (LinkedIn/Portfolio)</label><input type="text" id="inpLink" data-sync="link"></div>
+                                <div><label>Location (City, State)</label><input type="text" id="inpLocation"
+                                        data-sync="location"></div>
+                                <div><label>URL (LinkedIn/Portfolio)</label><input type="text" id="inpLink"
+                                        data-sync="link"></div>
                             </div>
                             <div class="form-group grid-2">
-                                <div><label>GitHub URL</label><input type="text" id="inpGithub" data-sync="github"></div>
+                                <div><label>GitHub URL</label><input type="text" id="inpGithub" data-sync="github">
+                                </div>
                                 <div></div>
                             </div>
                             <div class="form-group">
@@ -74,7 +83,8 @@
                         </div>
                         <div class="accordion-content">
                             <div id="experienceList" class="dynamic-list"></div>
-                            <button class="btn add-btn" onclick="addExperience()"><i class="fa-solid fa-plus"></i> Add Experience</button>
+                            <button class="btn add-btn" onclick="addExperience()"><i class="fa-solid fa-plus"></i> Add
+                                Experience</button>
                         </div>
                     </div>
 
@@ -86,7 +96,8 @@
                         </div>
                         <div class="accordion-content">
                             <div id="projectsList" class="dynamic-list"></div>
-                            <button class="btn add-btn" onclick="addProject()"><i class="fa-solid fa-plus"></i> Add Project</button>
+                            <button class="btn add-btn" onclick="addProject()"><i class="fa-solid fa-plus"></i> Add
+                                Project</button>
                         </div>
                     </div>
 
@@ -98,7 +109,8 @@
                         </div>
                         <div class="accordion-content">
                             <div id="educationList" class="dynamic-list"></div>
-                            <button class="btn add-btn" onclick="addEducation()"><i class="fa-solid fa-plus"></i> Add Education</button>
+                            <button class="btn add-btn" onclick="addEducation()"><i class="fa-solid fa-plus"></i> Add
+                                Education</button>
                         </div>
                     </div>
 
@@ -126,52 +138,72 @@
                 <div class="resume-wrapper">
                     <div class="resume-document ATS-word-template" id="resumeDocument">
                         <table style="width: 100%; border-spacing: 0; border: none;">
-                            <thead class="print-spacer"><tr><td style="padding: 0;"><div>&nbsp;</div></td></tr></thead>
-                            <tbody><tr><td style="padding: 0; vertical-align: top;">
-                                <header class="resume-header">
-                            <h1 class="resume-name"><span id="outFirstName"></span> <span id="outLastName"></span></h1>
-                            <div class="resume-contact">
-                                <span id="outEmail"></span>
-                                <span class="divider" id="div1">|</span>
-                                <span id="outPhone"></span>
-                                <span class="divider" id="div2">|</span>
-                                <span id="outLocation"></span>
-                                <span class="divider" id="div3">|</span>
-                                <span id="outLink"></span>
-                                <span class="divider" id="div4" style="display:none;">|</span>
-                                <span id="outGithub"></span>
-                            </div>
-                        </header>
+                            <thead class="print-spacer">
+                                <tr>
+                                    <td style="padding: 0;">
+                                        <div>&nbsp;</div>
+                                    </td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 0; vertical-align: top;">
+                                        <header class="resume-header">
+                                            <h1 class="resume-name"><span id="outFirstName"></span> <span
+                                                    id="outLastName"></span></h1>
+                                            <div class="resume-contact">
+                                                <span id="outEmail"></span>
+                                                <span class="divider" id="div1">|</span>
+                                                <span id="outPhone"></span>
+                                                <span class="divider" id="div2">|</span>
+                                                <span id="outLocation"></span>
+                                                <span class="divider" id="div3">|</span>
+                                                <span id="outLink"></span>
+                                                <span class="divider" id="div4" style="display:none;">|</span>
+                                                <span id="outGithub"></span>
+                                            </div>
+                                        </header>
 
-                        <div class="resume-section" id="sectionSummary" style="display:none;">
-                            <h2 class="section-title">Professional Summary</h2>
-                            <p class="resume-summary" id="outSummary"></p>
-                        </div>
+                                        <div class="resume-section" id="sectionSummary" style="display:none;">
+                                            <h2 class="section-title">Professional Summary</h2>
+                                            <p class="resume-summary" id="outSummary"></p>
+                                        </div>
 
-                        <div class="resume-section" id="sectionExperience" style="display:none;">
-                            <h2 class="section-title">Professional Experience</h2>
-                            <div id="outExperienceList"></div>
-                        </div>
+                                        <div class="resume-section" id="sectionExperience" style="display:none;">
+                                            <h2 class="section-title">Professional Experience</h2>
+                                            <div id="outExperienceList"></div>
+                                        </div>
 
-                        <div class="resume-section" id="sectionProjects" style="display:none;">
-                            <h2 class="section-title">Projects</h2>
-                            <div id="outProjectsList"></div>
-                        </div>
+                                        <div class="resume-section" id="sectionProjects" style="display:none;">
+                                            <h2 class="section-title">Projects</h2>
+                                            <div id="outProjectsList"></div>
+                                        </div>
 
-                        <div class="resume-section" id="sectionEducation" style="display:none;">
-                            <h2 class="section-title">Education</h2>
-                            <div id="outEducationList"></div>
-                        </div>
-                        
-                        <div class="resume-section" id="sectionSkills" style="display:none;">
-                            <h2 class="section-title">Skills & Certifications</h2>
-                            <div class="skills-info-container">
-                                <div class="skills-block-text"><strong>Technical Skills:</strong> <span id="outSkillsList"></span></div>
-                                <div class="skills-block-text" id="certificationsWrapper" style="display:none;"><strong>Certifications:</strong> <span id="outCertificationsList"></span></div>
-                            </div>
-                        </div>
-                            </td></tr></tbody>
-                            <tfoot class="print-spacer"><tr><td style="padding: 0;"><div>&nbsp;</div></td></tr></tfoot>
+                                        <div class="resume-section" id="sectionEducation" style="display:none;">
+                                            <h2 class="section-title">Education</h2>
+                                            <div id="outEducationList"></div>
+                                        </div>
+
+                                        <div class="resume-section" id="sectionSkills" style="display:none;">
+                                            <h2 class="section-title">Skills & Certifications</h2>
+                                            <div class="skills-info-container">
+                                                <div class="skills-block-text"><strong>Technical Skills:</strong> <span
+                                                        id="outSkillsList"></span></div>
+                                                <div class="skills-block-text" id="certificationsWrapper"
+                                                    style="display:none;"><strong>Certifications:</strong> <span
+                                                        id="outCertificationsList"></span></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot class="print-spacer">
+                                <tr>
+                                    <td style="padding: 0;">
+                                        <div>&nbsp;</div>
+                                    </td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -186,15 +218,19 @@
         <div class="modal-content glass" style="text-align: center;">
             <span class="close-modal" id="closeUploadModal">&times;</span>
             <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-file-pdf"></i> AI Resume Parsing</h2>
-            
-            <p style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 20px;">Upload your existing resume. Our AI will automatically read, parse, and rewrite your history into a perfect 100-score ATS format.</p>
 
-            <button class="btn primary full-width" id="btnConfirmUpload" style="margin-bottom: 15px;">Select PDF & Process</button>
+            <p style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 20px;">Upload your existing resume. Our AI will
+                automatically read, parse, and rewrite your history into a perfect 100-score ATS format.</p>
+
+            <button class="btn primary full-width" id="btnConfirmUpload" style="margin-bottom: 15px;">Select PDF &
+                Process</button>
 
             <div id="uploadStatusArea" style="display: none;">
                 <div id="uploadStatusText" style="color: #cbd5e1; margin-bottom: 15px;">Reading file...</div>
-                <div id="uploadProgressBar" style="width: 100%; height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-bottom: 10px;">
-                    <div id="uploadProgressFill" style="width: 0%; height: 100%; background: #3b82f6; transition: width 0.4s ease;"></div>
+                <div id="uploadProgressBar"
+                    style="width: 100%; height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-bottom: 10px;">
+                    <div id="uploadProgressFill"
+                        style="width: 0%; height: 100%; background: #3b82f6; transition: width 0.4s ease;"></div>
                 </div>
             </div>
         </div>
@@ -210,8 +246,10 @@
                 <input type="text" class="exp-date" placeholder="MM/YYYY - MM/YYYY" data-field="date">
                 <input type="text" class="exp-location" placeholder="City, State" data-field="location">
             </div>
-            <textarea class="exp-desc" placeholder="- Start bullet with action verb...&#10;- Quantify achievements..." rows="3" data-field="desc"></textarea>
-            <button class="btn-delete" onclick="removeDynamicItem(this, 'experience')"><i class="fa-solid fa-trash"></i></button>
+            <textarea class="exp-desc" placeholder="- Start bullet with action verb...&#10;- Quantify achievements..."
+                rows="3" data-field="desc"></textarea>
+            <button class="btn-delete" onclick="removeDynamicItem(this, 'experience')"><i
+                    class="fa-solid fa-trash"></i></button>
         </div>
     </template>
 
@@ -223,11 +261,13 @@
                 <input type="text" class="exp-company" placeholder="Organization (Optional)" data-field="company">
                 <input type="text" class="exp-date" placeholder="Year" data-field="date">
             </div>
-            <textarea class="exp-desc" placeholder="- Bullet point 1...&#10;- Bullet point 2..." rows="3" data-field="desc"></textarea>
-            <button class="btn-delete" onclick="removeDynamicItem(this, 'projects')"><i class="fa-solid fa-trash"></i></button>
+            <textarea class="exp-desc" placeholder="- Bullet point 1...&#10;- Bullet point 2..." rows="3"
+                data-field="desc"></textarea>
+            <button class="btn-delete" onclick="removeDynamicItem(this, 'projects')"><i
+                    class="fa-solid fa-trash"></i></button>
         </div>
     </template>
-    
+
     <template id="tplEducation">
         <div class="edu-item editing" draggable="true">
             <i class="fa-solid fa-grip-vertical drag-handle" title="Drag to reorder"></i>
@@ -237,10 +277,12 @@
                 <input type="text" class="edu-date" placeholder="Graduation Year" data-field="date">
                 <input type="text" class="exp-location" placeholder="City, State" data-field="location">
             </div>
-            <button class="btn-delete" onclick="removeDynamicItem(this, 'education')"><i class="fa-solid fa-trash"></i></button>
+            <button class="btn-delete" onclick="removeDynamicItem(this, 'education')"><i
+                    class="fa-solid fa-trash"></i></button>
         </div>
     </template>
 
     <script src="app.js"></script>
 </body>
+
 </html>

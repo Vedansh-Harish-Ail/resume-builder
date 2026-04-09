@@ -272,13 +272,8 @@ function setEditorField(field, val) {
 }
 
 // -------------------------------------------------------------
-// REAL AI PDF PARSING LOGIC (Using PDF.js + Gemini API)
+// REAL AI PDF PARSING LOGIC (Using PDF.js + Backend API)
 // -------------------------------------------------------------
-// IMPORTANT: Place your Developer API Key here for testing.
-// NEVER deploy this code to a public website with your key exposed!
-// In production, this fetch call must be moved to your own backend server.
-const DEVELOPER_GEMINI_API_KEY = "AIzaSyDPMd29gcIgwO0cViOQLK09h5N8sxwG2Qw";
-
 const fileUpload = document.getElementById('fileUpload');
 const uploadModal = document.getElementById('uploadModal');
 const uploadStatus = document.getElementById('uploadStatusText');
@@ -294,9 +289,6 @@ document.getElementById('closeUploadModal').addEventListener('click', () => {
 });
 
 document.getElementById('btnConfirmUpload').addEventListener('click', () => {
-    if (DEVELOPER_GEMINI_API_KEY === "YOUR_API_KEY_HERE") {
-        return alert("Setup Required: Please add your Developer API Key at line 273 in app.js!");
-    }
     fileUpload.click();
 });
 
@@ -349,36 +341,16 @@ async function extractTextFromPDF(file) {
 }
 
 async function parseResumeWithGemini(text) {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${DEVELOPER_GEMINI_API_KEY}`;
-
-    const prompt = `
-    You are an expert ATS resume parser. Extract information from the following text and return ONLY a single JSON object. Do not wrap it in markdown block quotes. Use this exact schema:
-    {
-      "firstName": "string", "lastName": "string", "email": "string", "phone": "string", "location": "string", "link": "string", "skills": "comma separated string", "certifications": "comma separated string", "summary": "string",
-      "experience": [ { "role": "string", "company": "string", "date": "string", "location": "string", "desc": "bullet point strings separated by \\n" } ],
-      "projects": [ { "role": "string", "company": "string", "date": "string", "desc": "bullet point strings separated by \\n" } ],
-      "education": [ { "degree": "string", "school": "string", "date": "string", "location": "string" } ]
-    }
-    
-    Resume Text:
-    ${text}
-    `;
-
-    const response = await fetch(endpoint, {
+    const response = await fetch('/api/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-        })
+        body: JSON.stringify({ text })
     });
 
     const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
+    if (data.error) throw new Error(data.error);
 
-    let rawResult = data.candidates[0].content.parts[0].text;
-    rawResult = rawResult.replace(/```json/g, '').replace(/```/g, '').trim();
-
-    return JSON.parse(rawResult);
+    return data;
 }
 
 function applyParsedData(data) {
