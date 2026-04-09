@@ -130,7 +130,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--primary-color);
 .close-modal { position: absolute; top: 1rem; right: 1.5rem; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
 .close-modal:hover { color: white; }
 #aiLoader { margin-top: 1rem; text-align: center; color: var(--primary-color); font-weight: 500;}
-.loader-hidden { display: none; }
+Resume Builder.loader-hidden { display: none; }
 
 .print-spacer { display: none; }
 
