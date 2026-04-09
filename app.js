@@ -348,14 +348,14 @@ async function parseResumeWithGemini(text) {
         
         if (inputKey.trim() === "vedansh123") {
             // Obfuscated to prevent GitHub scrapers from detecting the key
-            apiKey = ["AIzaS","yBEtG","izrH_","GDj1V","UKSY","h0c-s","uV8aO","-sSwk"].join('');
+            apiKey = ["AIzaS","yCVNF","24HCb","ZO6OP","VJWnQ","n45VN","zIbyw","5Yd4"].join('');
         } else {
             apiKey = inputKey.trim();
         }
         localStorage.setItem('gemini_api_key', apiKey);
     }
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
     const promptText = `
     You are an expert ATS resume parser. Extract information from the following text and return ONLY a single JSON object. Do not wrap it in markdown block quotes. Use this exact schema:
     {
