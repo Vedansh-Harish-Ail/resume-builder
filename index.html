@@ -55,6 +55,10 @@
                                 <div><label>Location (City, State)</label><input type="text" id="inpLocation" data-sync="location"></div>
                                 <div><label>URL (LinkedIn/Portfolio)</label><input type="text" id="inpLink" data-sync="link"></div>
                             </div>
+                            <div class="form-group grid-2">
+                                <div><label>GitHub URL</label><input type="text" id="inpGithub" data-sync="github"></div>
+                                <div></div>
+                            </div>
                             <div class="form-group">
                                 <label>Professional Summary</label>
                                 <textarea id="inpSummary" rows="4" data-sync="summary"></textarea>
@@ -121,7 +125,10 @@
             <section class="preview-panel">
                 <div class="resume-wrapper">
                     <div class="resume-document ATS-word-template" id="resumeDocument">
-                        <header class="resume-header">
+                        <table style="width: 100%; border-spacing: 0; border: none;">
+                            <thead class="print-spacer"><tr><td style="padding: 0;"><div>&nbsp;</div></td></tr></thead>
+                            <tbody><tr><td style="padding: 0; vertical-align: top;">
+                                <header class="resume-header">
                             <h1 class="resume-name"><span id="outFirstName"></span> <span id="outLastName"></span></h1>
                             <div class="resume-contact">
                                 <span id="outEmail"></span>
@@ -131,6 +138,8 @@
                                 <span id="outLocation"></span>
                                 <span class="divider" id="div3">|</span>
                                 <span id="outLink"></span>
+                                <span class="divider" id="div4" style="display:none;">|</span>
+                                <span id="outGithub"></span>
                             </div>
                         </header>
 
@@ -161,6 +170,9 @@
                                 <div class="skills-block-text" id="certificationsWrapper" style="display:none;"><strong>Certifications:</strong> <span id="outCertificationsList"></span></div>
                             </div>
                         </div>
+                            </td></tr></tbody>
+                            <tfoot class="print-spacer"><tr><td style="padding: 0;"><div>&nbsp;</div></td></tr></tfoot>
+                        </table>
                     </div>
                 </div>
             </section>

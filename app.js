@@ -13,7 +13,7 @@ function toggleAccordion(header) {
 }
 
 // Data Handling
-const simpleFields = ['firstName', 'lastName', 'email', 'phone', 'location', 'link', 'skills', 'certifications', 'summary'];
+const simpleFields = ['firstName', 'lastName', 'email', 'phone', 'location', 'link', 'github', 'skills', 'certifications', 'summary'];
 let state = { experience: [], education: [], projects: [] };
 
 function initApp() {
@@ -88,10 +88,12 @@ function updateContactDividers() {
     const phone = document.getElementById('outPhone').innerText.trim();
     const loc = document.getElementById('outLocation').innerText.trim();
     const lnk = document.getElementById('outLink').innerText.trim();
+    const git = document.getElementById('outGithub').innerText.trim();
 
     document.getElementById('div1').style.display = (email && phone) ? 'inline' : 'none';
     document.getElementById('div2').style.display = ((email || phone) && loc) ? 'inline' : 'none';
     document.getElementById('div3').style.display = ((email || phone || loc) && lnk) ? 'inline' : 'none';
+    document.getElementById('div4').style.display = ((email || phone || loc || lnk) && git) ? 'inline' : 'none';
 }
 
 function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }

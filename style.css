@@ -132,12 +132,18 @@ input:focus, textarea:focus { outline: none; border-color: var(--primary-color);
 #aiLoader { margin-top: 1rem; text-align: center; color: var(--primary-color); font-weight: 500;}
 .loader-hidden { display: none; }
 
+.print-spacer { display: none; }
+
 @media print {
-    @page { size: letter; margin: 0.5in; }
+    @page { size: letter; margin: 0; }
     body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
     .hide-on-print { display: none !important; }
     .workspace { display: block; height: auto; overflow: visible; }
     .preview-panel { display: block; background: white; padding: 0; width: 100%; flex: none; overflow: visible; }
     .resume-wrapper { display: block; }
-    .resume-document.ATS-word-template { border: none; box-shadow: none; width: 100%; min-height: auto; padding: 0; margin: 0; }
+    .resume-document.ATS-word-template { border: none; box-shadow: none; width: 100%; min-height: auto; padding: 0 0.5in; margin: 0; }
+    thead.print-spacer { display: table-header-group; }
+    tfoot.print-spacer { display: table-footer-group; }
+    .print-spacer td { height: 0.5in; padding: 0; border: none; }
+    .print-spacer div { height: 0.5in; color: transparent; overflow: hidden; }
 }
