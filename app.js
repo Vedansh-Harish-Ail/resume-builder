@@ -341,16 +341,52 @@ async function extractTextFromPDF(file) {
 }
 
 async function parseResumeWithGemini(text) {
-    const response = await fetch('/api/parse', {
+    let apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+        let inputKey = prompt("Enter your Gemini API Key to use the AI features:\n(Or type your VIP Password if you have one)");
+        if (!inputKey) throw new Error("API Key or Password required to parse resumes.");
+        
+        if (inputKey.trim() === "vedansh123") {
+            // Obfuscated with Base64 to prevent GitHub scrapers from stealing it immediately
+            apiKey = atob("QUl6YVN5QTJ0UmxOYnFJYWM4Sko1N0RsVkZlLXplU2JMM2ZxbTcw");
+        } else {
+            apiKey = inputKey.trim();
+        }
+        localStorage.setItem('gemini_api_key', apiKey);
+    }
+
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const promptText = `
+    You are an expert ATS resume parser. Extract information from the following text and return ONLY a single JSON object. Do not wrap it in markdown block quotes. Use this exact schema:
+    {
+      "firstName": "string", "lastName": "string", "email": "string", "phone": "string", "location": "string", "link": "string", "skills": "comma separated string", "certifications": "comma separated string", "summary": "string",
+      "experience": [ { "role": "string", "company": "string", "date": "string", "location": "string", "desc": "bullet point strings separated by \\n" } ],
+      "projects": [ { "role": "string", "company": "string", "date": "string", "desc": "bullet point strings separated by \\n" } ],
+      "education": [ { "degree": "string", "school": "string", "date": "string", "location": "string" } ]
+    }
+    
+    Resume Text:
+    ${text}
+    `;
+
+    const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }] }]
+        })
     });
 
     const data = await response.json();
-    if (data.error) throw new Error(data.error);
+    if (data.error) {
+        if (data.error.message.includes('API key not valid')) localStorage.removeItem('gemini_api_key');
+        throw new Error(data.error.message);
+    }
 
-    return data;
+    let rawResult = data.candidates[0].content.parts[0].text;
+    rawResult = rawResult.replace(/```json/g, '').replace(/```/g, '').trim();
+
+    return JSON.parse(rawResult);
 }
 
 function applyParsedData(data) {
