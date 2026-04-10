@@ -13,10 +13,13 @@ function toggleAccordion(header) {
 }
 
 // Data Handling
-const simpleFields = ['firstName', 'lastName', 'email', 'phone', 'location', 'link', 'github', 'skills', 'certifications', 'summary'];
+const simpleFields = ['firstName', 'lastName', 'email', 'phone', 'location', 'link', 'github', 'skills', 'certifications', 'summary', 'openAIKey', 'vipPassword'];
 let state = { experience: [], education: [], projects: [] };
 
 function initApp() {
+    // Note: To use AI features, please paste your OpenAI API key in the 'AI Parser Settings' section of the editor.
+    // This key is stored securely in your browser's local storage and never sent to our servers except for parsing.
+
     simpleFields.forEach(field => {
         const input = document.querySelector(`[data-sync="${field}"]`);
         const val = localStorage.getItem(`resume_${field}`) || '';
@@ -47,6 +50,134 @@ function initApp() {
     renderDynamicList('experience');
     renderDynamicList('projects');
     renderDynamicList('education');
+
+    // AI Settings UI Enhancements
+    setupAISettings();
+}
+
+function setupAISettings() {
+    const toggleBtn = document.getElementById('toggleKeyVisibility');
+    const keyInput = document.getElementById('inpOpenAIKey');
+    if (toggleBtn && keyInput) {
+        toggleBtn.addEventListener('click', () => {
+            const type = keyInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            keyInput.setAttribute('type', type);
+            toggleBtn.classList.toggle('fa-eye');
+            toggleBtn.classList.toggle('fa-eye-slash');
+        });
+    }
+
+    // Add "AI Active" badge if key/VIP exists
+    updateAIBadges();
+    const aiInputs = document.querySelectorAll('#inpOpenAIKey, #inpVipPassword');
+    aiInputs.forEach(input => input.addEventListener('input', updateAIBadges));
+
+    // Summary Generation
+    document.getElementById('btnAiSummary').addEventListener('click', generateSummary);
+}
+
+async function generateSummary() {
+    const btn = document.getElementById('btnAiSummary');
+    const originalText = btn.innerHTML;
+    const key = localStorage.getItem('resume_openAIKey');
+    const vip = localStorage.getItem('resume_vipPassword');
+    
+    if (!key && !vip) {
+        alert("Please provide an API Key or VIP Password in settings first.");
+        toggleAccordion(document.querySelector('#aiSettingsItem .accordion-header'));
+        return;
+    }
+
+    // Collect context for summary
+    const firstName = localStorage.getItem('resume_firstName') || '';
+    const skills = localStorage.getItem('resume_skills') || '';
+    const exp = state.experience.map(e => `${e.role} at ${e.company}`).join(', ');
+    const context = `Name: ${firstName}, Skills: ${skills}, Experience: ${exp}`;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Writing...';
+
+    try {
+        const response = await fetch('/api/parse', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'generate_summary', context, openAIKey: key, vipPassword: vip })
+        });
+        const data = await response.json();
+        if (data.result) {
+            setEditorField('summary', data.result);
+        } else {
+            alert("Generation failed: " + (data.error || "Unknown error"));
+        }
+    } catch (e) {
+        alert("Network error: " + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+async function enhanceWithAI(btn, type) {
+    const originalText = btn.innerHTML;
+    const wrapper = btn.closest('.ai-input-wrapper');
+    const textarea = wrapper.querySelector('textarea');
+    const text = textarea.value.trim();
+    const key = localStorage.getItem('resume_openAIKey');
+    const vip = localStorage.getItem('resume_vipPassword');
+
+    if (!text) {
+        alert("Please enter some points first to enhance.");
+        return;
+    }
+
+    if (!key && !vip) {
+        alert("Please provide an API Key or VIP Password in settings first.");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+
+    try {
+        const response = await fetch('/api/parse', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'enhance_bullets', text, openAIKey: key, vipPassword: vip })
+        });
+        const data = await response.json();
+        if (data.result) {
+            textarea.value = data.result;
+            // Trigger storage sync
+            const itemId = btn.closest('[data-id]').dataset.id;
+            updateDynamicItem(type, parseInt(itemId), 'desc', data.result);
+        } else {
+            alert("Enhancement failed: " + (data.error || "Unknown error"));
+        }
+    } catch (e) {
+        alert("Network error: " + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+function updateAIBadges() {
+    const key = localStorage.getItem('resume_openAIKey');
+    const vip = localStorage.getItem('resume_vipPassword');
+    const header = document.querySelector('#aiSettingsItem h3');
+    const uploadTitle = document.querySelector('#uploadModal h2');
+    
+    if (key || vip) {
+        if (!header.querySelector('.ai-badge')) {
+            header.innerHTML += '<span class="ai-badge">Active</span>';
+        }
+        if (uploadTitle && !uploadTitle.querySelector('.ai-badge')) {
+            uploadTitle.innerHTML += '<span class="ai-badge">AI Enhanced</span>';
+        }
+    } else {
+        const badges = document.querySelectorAll('.ai-badge');
+        badges.forEach(b => b.remove());
+    }
 }
 
 function updatePreview(field, value) {
@@ -262,6 +393,13 @@ function removeDynamicItem(btn, type) {
 
 document.getElementById('btnDownload').addEventListener('click', () => { window.print(); });
 
+function resetAllData() {
+    if (!confirm('Are you sure you want to clear all resume data? This cannot be undone.')) return;
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('resume_'));
+    keys.forEach(k => localStorage.removeItem(k));
+    location.reload();
+}
+
 
 
 function setEditorField(field, val) {
@@ -272,7 +410,7 @@ function setEditorField(field, val) {
 }
 
 // -------------------------------------------------------------
-// REAL AI PDF PARSING LOGIC (Using PDF.js + Backend API)
+// PDF Import (Offline Parsing)
 // -------------------------------------------------------------
 const fileUpload = document.getElementById('fileUpload');
 const uploadModal = document.getElementById('uploadModal');
@@ -302,8 +440,8 @@ fileUpload.addEventListener('change', async (e) => {
             const extractedText = await extractTextFromPDF(file);
 
             uploadProgress.style.width = '50%';
-            uploadStatus.innerText = `Calling Gemini API...`;
-            const parsedData = await parseResumeWithGemini(extractedText);
+            uploadStatus.innerText = `Parsing resume locally...`;
+            const parsedData = await parseResume(extractedText);
 
             uploadProgress.style.width = '90%';
             uploadStatus.innerText = `Mapping variables to 100-Score Template...`;
@@ -329,64 +467,452 @@ async function extractTextFromPDF(file) {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = '';
+    const pageTexts = [];
 
     for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        const strings = textContent.items.map(item => item.str);
-        fullText += strings.join(' ') + '\n';
+        pageTexts.push(convertPdfItemsToStructuredText(textContent.items));
     }
-    return fullText;
+
+    return normalizeWhitespace(pageTexts.filter(Boolean).join('\n\n'));
 }
 
-async function parseResumeWithGemini(text) {
-    let apiKey = localStorage.getItem('gemini_api_key');
-    if (!apiKey) {
-        let inputKey = prompt("Enter your Gemini API Key to use the AI features:\n(Or type your VIP Password if you have one)");
-        if (!inputKey) throw new Error("API Key or Password required to parse resumes.");
-        
-        if (inputKey.trim() === "vedansh123") {
-            // Obfuscated to prevent GitHub scrapers from detecting the key
-            apiKey = ["AIzaS","yCVNF","24HCb","ZO6OP","VJWnQ","n45VN","zIbyw","5Yd4"].join('');
-        } else {
-            apiKey = inputKey.trim();
+async function parseResume(text) {
+    const key = localStorage.getItem('resume_openAIKey');
+    const vip = localStorage.getItem('resume_vipPassword');
+
+    if (key || vip) {
+        uploadProgress.style.width = '70%';
+        uploadStatus.innerText = `AI-Engine: Structuring Resume...`;
+        try {
+            const response = await fetch('/api/parse', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    text, 
+                    openAIKey: key, 
+                    vipPassword: vip 
+                })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                return normalizeParsedData(data);
+            }
+            const errData = await response.json();
+            console.warn("AI Parsing Error:", errData.error);
+            uploadStatus.innerText = `AI Error: Falling back to local...`;
+        } catch (error) {
+            console.error("Fetch Error:", error);
+            uploadStatus.innerText = `Network Error: Falling back to local...`;
         }
-        localStorage.setItem('gemini_api_key', apiKey);
+        await new Promise(r => setTimeout(r, 1000));
     }
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-    const promptText = `
-    You are an expert ATS resume parser. Extract information from the following text and return ONLY a single JSON object. Do not wrap it in markdown block quotes. Use this exact schema:
-    {
-      "firstName": "string", "lastName": "string", "email": "string", "phone": "string", "location": "string", "link": "string", "skills": "comma separated string", "certifications": "comma separated string", "summary": "string",
-      "experience": [ { "role": "string", "company": "string", "date": "string", "location": "string", "desc": "bullet point strings separated by \\n" } ],
-      "projects": [ { "role": "string", "company": "string", "date": "string", "desc": "bullet point strings separated by \\n" } ],
-      "education": [ { "degree": "string", "school": "string", "date": "string", "location": "string" } ]
-    }
-    
-    Resume Text:
-    ${text}
-    `;
+    // Offline-only: no API calls, no keys, no quotas.
+    uploadProgress.style.width = '70%';
+    uploadStatus.innerText = `Local Parser: Extracting sections...`;
+    return parseResumeFallback(text);
+}
 
-    const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{ parts: [{ text: promptText }] }]
+function parseResumeFallback(text) {
+    const preparedText = prepareResumeText(text);
+    const cleanedText = normalizeWhitespace(preparedText);
+    const lines = preparedText
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+
+    const email = matchFirst(cleanedText, /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+    const phone = matchFirst(cleanedText, /(?:\+?\d{1,3}[\s.-]?)?(?:\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}/);
+    const github = matchFirst(cleanedText, /https?:\/\/(?:www\.)?github\.com\/[^\s|,;]+/i);
+    const linkedin = matchFirst(cleanedText, /https?:\/\/(?:[a-z]{2,3}\.)?linkedin\.com\/[^\s|,;]+/i);
+    const otherUrl = matchFirst(cleanedText, /https?:\/\/[^\s|,;]+/i);
+    const chosenLink = linkedin || (otherUrl && otherUrl !== github ? otherUrl : '');
+
+    const candidateName = inferName(lines, email);
+    const nameParts = splitName(candidateName);
+    const skillsSection = extractSection(preparedText, ['skills', 'technical skills', 'key skills', 'core competencies', 'technical proficiencies'], ['certifications', 'experience', 'projects', 'education']);
+    const certSection = extractSection(preparedText, ['certifications', 'licenses', 'certifications and licenses'], ['skills', 'experience', 'projects', 'education']);
+    const summarySection = extractSection(preparedText, ['summary', 'professional summary', 'profile', 'objective', 'about'], ['experience', 'projects', 'education', 'skills', 'certifications']);
+    const experienceSection = extractSection(preparedText, ['experience', 'professional experience', 'work experience', 'employment history', 'work history'], ['projects', 'education', 'skills', 'certifications']);
+    const projectsSection = extractSection(preparedText, ['projects', 'personal projects', 'academic projects'], ['education', 'skills', 'certifications', 'experience']);
+    const educationSection = extractSection(preparedText, ['education', 'academic background', 'education and training'], ['skills', 'certifications', 'projects', 'experience']);
+
+    return normalizeParsedData({
+        firstName: nameParts.firstName,
+        lastName: nameParts.lastName,
+        email,
+        phone,
+        location: inferLocation(lines, email, phone),
+        link: chosenLink,
+        github,
+        skills: normalizeListSection(skillsSection),
+        certifications: normalizeListSection(certSection),
+        summary: pickSummary(summarySection, lines),
+        experience: parseSimpleEntries(experienceSection, 'experience'),
+        projects: parseSimpleEntries(projectsSection, 'projects'),
+        education: parseEducationEntries(educationSection)
+    });
+}
+
+function normalizeParsedData(data) {
+    return {
+        firstName: safeString(data.firstName),
+        lastName: safeString(data.lastName),
+        email: safeString(data.email),
+        phone: safeString(data.phone),
+        location: safeString(data.location),
+        link: safeString(data.link),
+        github: safeString(data.github),
+        skills: safeString(data.skills),
+        certifications: safeString(data.certifications),
+        summary: safeString(data.summary),
+        experience: Array.isArray(data.experience) ? data.experience.map(item => ({
+            role: safeString(item.role),
+            company: safeString(item.company),
+            date: safeString(item.date),
+            location: safeString(item.location),
+            desc: safeString(item.desc)
+        })) : [],
+        projects: Array.isArray(data.projects) ? data.projects.map(item => ({
+            role: safeString(item.role),
+            company: safeString(item.company),
+            date: safeString(item.date),
+            desc: safeString(item.desc)
+        })) : [],
+        education: Array.isArray(data.education) ? data.education.map(item => ({
+            degree: safeString(item.degree),
+            school: safeString(item.school),
+            date: safeString(item.date),
+            location: safeString(item.location)
+        })) : []
+    };
+}
+
+function parseSimpleEntries(sectionText, type) {
+    if (!sectionText) return [];
+
+    const blocks = splitEntryBlocks(sectionText).slice(0, 8);
+
+    return blocks.map(block => {
+        const lines = block.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+        const bulletLines = lines.filter(line => /^[-*•]/.test(line));
+        const contentLines = lines.filter(line => !/^[-*•]/.test(line));
+        const date = extractDateRange(block);
+        const location = extractLocationFromBlock(block);
+        const cleanedLines = contentLines
+            .map(line => line.replace(date, '').replace(location, '').replace(/\s{2,}/g, ' ').trim())
+            .filter(Boolean);
+        const headline = cleanedLines[0] || '';
+        const subline = cleanedLines[1] || '';
+        const desc = bulletLines.length
+            ? bulletLines.join('\n')
+            : inferBulletLines(lines.slice(2)).join('\n');
+
+        if (type === 'projects') {
+            return {
+                role: headline,
+                company: subline,
+                date,
+                desc
+            };
+        }
+
+        const splitHeadline = splitRoleCompany(headline, subline);
+        return {
+            role: splitHeadline.role,
+            company: splitHeadline.company,
+            date,
+            location,
+            desc
+        };
+    }).filter(item => Object.values(item).some(value => safeString(value)));
+}
+
+function parseEducationEntries(sectionText) {
+    if (!sectionText) return [];
+
+    return splitEntryBlocks(sectionText)
+        .map(block => block.trim())
+        .filter(Boolean)
+        .slice(0, 6)
+        .map(block => {
+            const lines = block.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+            const date = extractDateRange(block);
+            const location = extractLocationFromBlock(block);
+            const cleanedLines = lines
+                .map(line => line.replace(date, '').replace(location, '').replace(/\s{2,}/g, ' ').trim())
+                .filter(Boolean);
+            return {
+                school: cleanedLines[0] || '',
+                degree: cleanedLines[1] || '',
+                date,
+                location
+            };
         })
+        .filter(item => item.school || item.degree);
+}
+
+function extractSection(text, headings, stopHeadings) {
+    const lines = text.split(/\r?\n/);
+    const normalizedHeadings = headings.map(normalizeHeading);
+    const normalizedStopHeadings = stopHeadings.map(normalizeHeading);
+    let startIndex = -1;
+
+    for (let i = 0; i < lines.length; i++) {
+        const normalized = normalizeHeading(lines[i]);
+        if (normalizedHeadings.includes(normalized)) {
+            startIndex = i + 1;
+            break;
+        }
+    }
+
+    if (startIndex === -1) return '';
+
+    const sectionLines = [];
+    for (let i = startIndex; i < lines.length; i++) {
+        const normalized = normalizeHeading(lines[i]);
+        if (normalized && normalizedStopHeadings.includes(normalized)) break;
+        sectionLines.push(lines[i]);
+    }
+
+    return sectionLines.join('\n').trim();
+}
+
+function normalizeHeading(line) {
+    return safeString(line).toLowerCase().replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function normalizeListSection(sectionText) {
+    if (!sectionText) return '';
+    return sectionText
+        .replace(/\r/g, '')
+        .split(/\n|,|•|·|\||\u2022/)
+        .map(part => part.replace(/^[-*•]\s*/, '').trim())
+        .filter(Boolean)
+        .join(', ');
+}
+
+function inferName(lines, email) {
+    for (const line of lines.slice(0, 5)) {
+        if (!line || line.length > 60) continue;
+        if (email && line.includes(email)) continue;
+        if (/\d/.test(line)) continue;
+        if (/resume|curriculum|vitae|summary|profile/i.test(line)) continue;
+        const words = line.split(/\s+/).filter(Boolean);
+        if (words.length >= 2 && words.length <= 4) {
+            return line;
+        }
+    }
+    return '';
+}
+
+function splitName(fullName) {
+    const parts = safeString(fullName).split(/\s+/).filter(Boolean);
+    return {
+        firstName: parts[0] || '',
+        lastName: parts.length > 1 ? parts.slice(1).join(' ') : ''
+    };
+}
+
+function inferLocation(lines, email, phone) {
+    for (const line of lines.slice(0, 8)) {
+        if (!line || (email && line.includes(email)) || (phone && line.includes(phone))) continue;
+        if (/https?:\/\//i.test(line)) continue;
+        if (/linkedin|github/i.test(line)) continue;
+        if (/^[A-Za-z .'-]+,\s*[A-Za-z .'-]+$/.test(line)) return line;
+    }
+    return '';
+}
+
+function extractDateRange(text) {
+    return matchFirst(
+        text,
+        /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec|\d{1,2})[a-z]*[\/\s.-]*\d{2,4}\s*(?:-|to|–)\s*(?:Present|Current|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec|\d{1,2})[a-z]*[\/\s.-]*\d{2,4}|\d{4})|\b(?:19|20)\d{2}\s*(?:-|to|–)\s*(?:Present|Current|\d{4})/i
+    );
+}
+
+function extractLocationFromBlock(text) {
+    const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    for (const line of lines) {
+        if (/^[A-Za-z .'-]+,\s*[A-Za-z .'-]+$/.test(line)) return line;
+    }
+    return '';
+}
+
+function normalizeWhitespace(value) {
+    return safeString(value).replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function safeString(value) {
+    return typeof value === 'string' ? value.trim() : '';
+}
+
+function matchFirst(text, regex) {
+    const match = safeString(text).match(regex);
+    return match ? match[0].trim() : '';
+}
+
+function convertPdfItemsToStructuredText(items) {
+    const rows = [];
+
+    items.forEach(item => {
+        const text = safeString(item.str);
+        if (!text) return;
+
+        const x = Number(item.transform?.[4] || 0);
+        const y = Number(item.transform?.[5] || 0);
+        const fontHeight = Number(item.height || item.transform?.[0] || 0);
+        const roundedY = Math.round(y);
+
+        let targetRow = rows.find(row => Math.abs(row.y - roundedY) <= 3);
+        if (!targetRow) {
+            targetRow = { y: roundedY, fontHeight, items: [] };
+            rows.push(targetRow);
+        }
+
+        targetRow.items.push({ text, x });
     });
 
-    const data = await response.json();
-    if (data.error) {
-        if (data.error.message.includes('API key not valid')) localStorage.removeItem('gemini_api_key');
-        throw new Error(data.error.message);
+    rows.sort((a, b) => b.y - a.y);
+
+    const lines = [];
+    let lastY = null;
+
+    rows.forEach(row => {
+        row.items.sort((a, b) => a.x - b.x);
+        const line = buildLineFromPdfRow(row.items);
+        if (!line) return;
+
+        if (lastY !== null) {
+            const gap = Math.abs(lastY - row.y);
+            if (gap > Math.max(14, row.fontHeight * 1.25)) {
+                lines.push('');
+            }
+        }
+
+        lines.push(line);
+        lastY = row.y;
+    });
+
+    return lines.join('\n');
+}
+
+function buildLineFromPdfRow(items) {
+    let line = '';
+    let previousX = null;
+
+    items.forEach(item => {
+        const piece = item.text.replace(/\s+/g, ' ').trim();
+        if (!piece) return;
+
+        if (previousX !== null && item.x - previousX > 18 && !line.endsWith(' ')) {
+            line += ' ';
+        } else if (line && !line.endsWith(' ')) {
+            line += ' ';
+        }
+
+        line += piece;
+        previousX = item.x + piece.length * 4;
+    });
+
+    return line.replace(/\s+/g, ' ').trim();
+}
+
+function prepareResumeText(text) {
+    return safeString(text)
+        .replace(/\u2022/g, '•')
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\n +/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
+
+function splitEntryBlocks(sectionText) {
+    const explicitBlocks = sectionText
+        .split(/\n\s*\n/)
+        .map(block => block.trim())
+        .filter(Boolean);
+
+    if (explicitBlocks.length > 1) return explicitBlocks;
+
+    const lines = sectionText.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    const blocks = [];
+    let current = [];
+
+    for (const line of lines) {
+        const shouldStartNewBlock =
+            current.length > 0 &&
+            looksLikeEntryStart(line) &&
+            current.some(existing => /^[-*•]/.test(existing) || extractDateRange(existing));
+
+        if (shouldStartNewBlock) {
+            blocks.push(current.join('\n'));
+            current = [];
+        }
+
+        current.push(line);
     }
 
-    let rawResult = data.candidates[0].content.parts[0].text;
-    rawResult = rawResult.replace(/```json/g, '').replace(/```/g, '').trim();
+    if (current.length) blocks.push(current.join('\n'));
+    return blocks.filter(Boolean);
+}
 
-    return JSON.parse(rawResult);
+function looksLikeEntryStart(line) {
+    if (!line) return false;
+    if (/^[-*•]/.test(line)) return false;
+    if (normalizeHeading(line).length <= 1) return false;
+    if (/^(experience|projects|education|skills|certifications|summary|profile|objective)$/i.test(line)) return false;
+    if (extractDateRange(line)) return false;
+
+    const words = line.split(/\s+/).filter(Boolean);
+    return words.length >= 2 && words.length <= 10;
+}
+
+function inferBulletLines(lines) {
+    return lines
+        .map(line => line.trim())
+        .filter(line => line && !extractDateRange(line) && !/^[A-Za-z .'-]+,\s*[A-Za-z .'-]+$/.test(line))
+        .map(line => line.startsWith('-') || line.startsWith('•') || line.startsWith('*') ? line : `- ${line}`);
+}
+
+function splitRoleCompany(headline, fallbackLine) {
+    const separators = [' | ', ' - ', ' @ ', ' at ', ' – '];
+
+    for (const separator of separators) {
+        if (headline.includes(separator)) {
+            const [left, right] = headline.split(separator).map(part => part.trim());
+            if (left && right) {
+                if (separator.trim() === 'at' || separator.includes('@')) {
+                    return { role: left, company: right };
+                }
+                return { company: left, role: right };
+            }
+        }
+    }
+
+    if (fallbackLine) {
+        return { company: headline, role: fallbackLine };
+    }
+
+    return { company: headline, role: '' };
+}
+
+function pickSummary(summarySection, lines) {
+    if (summarySection) return normalizeWhitespace(summarySection);
+
+    const candidates = lines
+        .filter(line =>
+            line.length > 40 &&
+            !extractDateRange(line) &&
+            !/^[-*•]/.test(line) &&
+            !line.includes('@') &&
+            !/linkedin|github|http/i.test(line)
+        )
+        .slice(0, 3);
+
+    return normalizeWhitespace(candidates.join(' '));
 }
 
 function applyParsedData(data) {
@@ -401,8 +927,28 @@ function applyParsedData(data) {
     if (data.summary) setEditorField('summary', data.summary);
 
     if (data.experience && data.experience.length > 0) {
-        state.experience = data.experience.map((e, idx) => ({ id: Date.now() + idx, ...e }));
+        // Post-parsing validation: move items that look like projects to the projects array
+        const realExperience = [];
+        const detectedProjects = [];
+
+        data.experience.forEach(item => {
+            const isProject = /project|leadership|personal|academic/i.test(item.company || '') || 
+                              /project|leadership|personal|academic/i.test(item.role || '');
+            
+            if (isProject) {
+                detectedProjects.push(item);
+            } else {
+                realExperience.push(item);
+            }
+        });
+
+        state.experience = realExperience.map((e, idx) => ({ id: Date.now() + idx, ...e }));
         localStorage.setItem('resume_experience', JSON.stringify(state.experience));
+
+        if (detectedProjects.length > 0) {
+            const existingProjects = data.projects || [];
+            data.projects = [...existingProjects, ...detectedProjects];
+        }
     }
 
     if (data.projects && data.projects.length > 0) {

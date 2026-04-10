@@ -21,6 +21,8 @@ body { font-family: 'Inter', sans-serif; background: #0f172a; color: var(--text-
 .logo { display: flex; align-items: center; gap: 0.75rem; font-size: 1.4rem; font-weight: 700; color: #fff; }
 .logo i { color: var(--primary-color); }
 
+.nav-actions { display: flex; align-items: center; gap: 0.75rem; }
+
 .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition); font-family: 'Inter', sans-serif; }
 .btn.primary { background: var(--primary-color); color: white; }
 .btn.primary:hover { background: var(--primary-hover); }
@@ -39,18 +41,116 @@ body { font-family: 'Inter', sans-serif; background: #0f172a; color: var(--text-
 
 .form-group { margin-bottom: 1.2rem; }
 .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: #cbd5e1; font-weight: 500; }
+.reset-hint, .settings-hint {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-top: 8px;
+    line-height: 1.4;
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-icon input {
+    padding-right: 40px;
+}
+
+.input-with-icon i {
+    position: absolute;
+    right: 12px;
+    color: #64748b;
+    transition: color 0.3s;
+}
+
+.input-with-icon i:hover {
+    color: #3b82f6;
+}
+
+.ai-badge {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: 8px;
+    text-transform: uppercase;
+}
+
+.btn-ai-small {
+    background: rgba(139, 92, 246, 0.1);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-ai-small:hover {
+    background: #8b5cf6;
+    color: white;
+}
+
+.ai-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.btn-ai-floating {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.btn-ai-floating:hover {
+    transform: scale(1.1);
+    background: #7c3aed;
+}
+
+.btn-ai-floating:disabled {
+    background: #4b5563;
+    cursor: not-allowed;
+    transform: none;
+}
 input, textarea { width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; font-family: 'Inter', sans-serif; transition: var(--transition); }
 input:focus, textarea:focus { outline: none; border-color: var(--primary-color); }
 
 .accordion-item { border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 1rem; background: #0f172a; overflow: hidden; }
 .accordion-header { padding: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.03); }
 .accordion-header h3 { font-size: 1.05rem; display: flex; align-items: center; gap: 0.6rem; }
+.accordion-header:hover { background: rgba(255,255,255,0.06); }
 .accordion-content { padding: 1.5rem 1rem; display: none; }
 
 .exp-item.editing, .edu-item.editing { background: #1e293b; padding: 1rem 1rem 1rem 2.5rem; border-radius: 6px; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.1); position: relative; display: flex; flex-direction: column; gap: 0.6rem; }
 .btn-delete { position: absolute; right: 0.5rem; top: 0.5rem; background: none; border: none; color: #ef4444; cursor: pointer; opacity: 0.7; }
+.btn-delete:hover { opacity: 1; transform: scale(1.15); }
 .add-btn { background: transparent; border: 1px dashed rgba(255,255,255,0.3); color: white; width: 100%; justify-content: center; margin-top: 0.5rem; padding: 0.8rem; }
 .add-btn:hover { border-color: #10b981; color: #10b981; }
+
+/* Experience/Project/Education editor input grids */
+.exp-header { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.exp-header input { font-size: 0.85rem; padding: 0.5rem 0.7rem; }
+.edu-header { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.edu-header input { font-size: 0.85rem; padding: 0.5rem 0.7rem; }
+.exp-desc { font-size: 0.85rem; resize: vertical; padding: 0.5rem 0.7rem; }
 
 /* Drag and Drop Styles */
 .drag-handle { position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #64748b; cursor: grab; padding: 4px; transition: color 0.15s; }
@@ -60,6 +160,12 @@ input:focus, textarea:focus { outline: none; border-color: var(--primary-color);
 .exp-item.editing[draggable="true"]:active, .edu-item.editing[draggable="true"]:active { cursor: grabbing; }
 .dragging { opacity: 0.5; border: 1px dashed var(--primary-color) !important; transform: scale(0.98); }
 .drop-target { border-top: 4px solid var(--primary-color) !important; border-top-left-radius: 2px; border-top-right-radius: 2px; }
+
+/* Editor Footer & Reset */
+.editor-footer { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); text-align: center; }
+.reset-btn { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; width: 100%; justify-content: center; }
+.reset-btn:hover { background: #ef4444; color: white; }
+.reset-hint { margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; }
 /* 
  * --------------------------------------------------------
  * 100% PERFECT ATS SCORE RESUME STYLING (Harvard Standard)
@@ -90,14 +196,21 @@ input:focus, textarea:focus { outline: none; border-color: var(--primary-color);
 .resume-header .resume-contact { font-size: 10pt; color: #000; display: block;}
 .resume-header .divider { margin: 0 4px; color: #000; }
 
-/* Section Architecture */
+.resume-section {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid #000;
+}
+
+.resume-section:last-of-type {
+    border-bottom: none;
+}
+
 .section-title {
     font-size: 11pt;
     text-transform: uppercase;
-    border-bottom: 1px solid #000;
-    padding-bottom: 2px;
-    margin-top: 16px;
-    margin-bottom: 8px;
+    margin-top: 10px;
+    margin-bottom: 6px;
     font-weight: bold;
     color: #000;
     letter-spacing: 0.5px;

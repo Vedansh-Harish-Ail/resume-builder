@@ -5,11 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Free Resume Builder | 100% ATS Compliant</title>
+    <meta name="description" content="Free, privacy-first ATS resume builder. 100% local, no login required. Offline PDF import with instant live preview.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"
-        href="#">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -25,7 +25,7 @@
                 <span>ResumeCraft</span>
             </div>
             <div class="nav-actions">
-                <input type="file" id="fileUpload" accept=".pdf,.doc,.docx" style="display:none;" />
+                <input type="file" id="fileUpload" accept=".pdf" style="display:none;" />
                 <button class="btn secondary" id="btnUploadResume"><i class="fa-solid fa-cloud-arrow-up"></i> Upload
                     Resume</button>
                 <button class="btn primary" id="btnDownload"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
@@ -69,8 +69,33 @@
                                 <div></div>
                             </div>
                             <div class="form-group">
-                                <label>Professional Summary</label>
+                                <label style="display: flex; justify-content: space-between; align-items: center;">
+                                    Professional Summary
+                                    <button class="btn-ai-small" id="btnAiSummary" title="Generate summary using AI"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Write</button>
+                                </label>
                                 <textarea id="inpSummary" rows="4" data-sync="summary"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Settings -->
+                    <div class="accordion-item" id="aiSettingsItem">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <h3><i class="fa-solid fa-robot"></i> AI Parser Settings</h3>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-content">
+                            <p class="settings-hint">Enhance resume parsing using AI. 100% private - keys are stored only in your browser.</p>
+                            <div class="form-group">
+                                <label>OpenAI API Key (sk-...)</label>
+                                <div class="input-with-icon">
+                                    <input type="password" id="inpOpenAIKey" placeholder="Paste your key here" data-sync="openAIKey">
+                                    <i class="fa-solid fa-eye" id="toggleKeyVisibility" style="cursor: pointer;"></i>
+                                </div>
+                            </div>
+                            <div class="form-group" id="vipSection">
+                                <label>VIP Access (Invite Only)</label>
+                                <input type="password" id="inpVipPassword" placeholder="Enter VIP Password" data-sync="vipPassword">
                             </div>
                         </div>
                     </div>
@@ -132,6 +157,14 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Reset / Tips Footer -->
+                <div class="editor-footer">
+                    <button class="btn reset-btn" id="btnResetData" onclick="resetAllData()">
+                        <i class="fa-solid fa-trash-can"></i> Reset All Data
+                    </button>
+                    <p class="reset-hint">All data is saved automatically in your browser. Nothing is sent to any server.</p>
+                </div>
             </section>
 
             <section class="preview-panel">
@@ -175,23 +208,21 @@
                                         </div>
 
                                         <div class="resume-section" id="sectionProjects" style="display:none;">
-                                            <h2 class="section-title">Projects</h2>
+                                            <h2 class="section-title">Projects & Leadership</h2>
                                             <div id="outProjectsList"></div>
                                         </div>
-
                                         <div class="resume-section" id="sectionEducation" style="display:none;">
                                             <h2 class="section-title">Education</h2>
                                             <div id="outEducationList"></div>
                                         </div>
-
                                         <div class="resume-section" id="sectionSkills" style="display:none;">
-                                            <h2 class="section-title">Skills & Certifications</h2>
+                                            <h2 class="section-title">Skills & Additional Information</h2>
                                             <div class="skills-info-container">
                                                 <div class="skills-block-text"><strong>Technical Skills:</strong> <span
-                                                        id="outSkillsList"></span></div>
+                                                        id="outSkills"></span></div>
                                                 <div class="skills-block-text" id="certificationsWrapper"
                                                     style="display:none;"><strong>Certifications:</strong> <span
-                                                        id="outCertificationsList"></span></div>
+                                                        id="outCertifications"></span></div>
                                             </div>
                                         </div>
                                     </td>
@@ -213,14 +244,13 @@
 
 
 
-    <!-- True AI Upload Modal -->
+    <!-- Resume Import Modal (Offline) -->
     <div id="uploadModal" class="modal hide-on-print">
         <div class="modal-content glass" style="text-align: center;">
             <span class="close-modal" id="closeUploadModal">&times;</span>
-            <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-file-pdf"></i> AI Resume Parsing</h2>
+            <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-file-pdf"></i> Resume Import</h2>
 
-            <p style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 20px;">Upload your existing resume. Our AI will
-                automatically read, parse, and rewrite your history into a perfect 100-score ATS format.</p>
+            <p style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 20px;">Upload your existing PDF resume. We'll extract text and pre-fill fields using a built-in offline parser (no API keys, no quotas).</p>
 
             <button class="btn primary full-width" id="btnConfirmUpload" style="margin-bottom: 15px;">Select PDF &
                 Process</button>
@@ -246,8 +276,11 @@
                 <input type="text" class="exp-date" placeholder="MM/YYYY - MM/YYYY" data-field="date">
                 <input type="text" class="exp-location" placeholder="City, State" data-field="location">
             </div>
-            <textarea class="exp-desc" placeholder="- Start bullet with action verb...&#10;- Quantify achievements..."
-                rows="3" data-field="desc"></textarea>
+            <div class="ai-input-wrapper">
+                <textarea class="exp-desc" placeholder="- Start bullet with action verb...&#10;- Quantify achievements..."
+                    rows="4" data-field="desc"></textarea>
+                <button class="btn-ai-floating" onclick="enhanceWithAI(this, 'experience')" title="Enhance bullets with AI"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+            </div>
             <button class="btn-delete" onclick="removeDynamicItem(this, 'experience')"><i
                     class="fa-solid fa-trash"></i></button>
         </div>
@@ -261,8 +294,11 @@
                 <input type="text" class="exp-company" placeholder="Organization (Optional)" data-field="company">
                 <input type="text" class="exp-date" placeholder="Year" data-field="date">
             </div>
-            <textarea class="exp-desc" placeholder="- Bullet point 1...&#10;- Bullet point 2..." rows="3"
-                data-field="desc"></textarea>
+            <div class="ai-input-wrapper">
+                <textarea class="exp-desc" placeholder="- Bullet point 1...&#10;- Bullet point 2..." rows="4"
+                    data-field="desc"></textarea>
+                <button class="btn-ai-floating" onclick="enhanceWithAI(this, 'projects')" title="Enhance description with AI"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+            </div>
             <button class="btn-delete" onclick="removeDynamicItem(this, 'projects')"><i
                     class="fa-solid fa-trash"></i></button>
         </div>
